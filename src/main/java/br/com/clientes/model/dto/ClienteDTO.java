@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import lombok.Data;
-import org.springframework.format.datetime.DateFormatter;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -28,15 +27,18 @@ public class ClienteDTO {
 
     public static ClienteDTO entityToDto(Cliente cliente) {
         if(cliente != null) {
-            ObjectMapper mapper = new ObjectMapper();
-            JavaTimeModule javaTimeModule=new JavaTimeModule();
-            // Hack time module to allow 'Z' at the end of string (i.e. javascript json's)
-            javaTimeModule.addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ISO_DATE));
-            mapper.registerModule(javaTimeModule);
-            mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-            ClienteDTO dto = mapper.convertValue(cliente, ClienteDTO.class);
+            ClienteDTO dto = buildMapper().convertValue(cliente, ClienteDTO.class);
             return dto;
         }
         return null;
+    }
+
+    private static ObjectMapper buildMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        JavaTimeModule javaTimeModule=new JavaTimeModule();
+        javaTimeModule.addDeserializer(LocalDate.class, new LocalDateDeserializer(DateTimeFormatter.ISO_DATE));
+        mapper.registerModule(javaTimeModule);
+        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        return mapper;
     }
 }
